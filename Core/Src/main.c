@@ -63,6 +63,34 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+uint32_t ADC_Read_Manual(ADC_HandleTypeDef *hadc, uint32_t channel) {
+    ADC_ChannelConfTypeDef sConfig = {0};
+    uint32_t result = 0;
+
+    // 1. Configurar el canal específico en la posición 1
+    sConfig.Channel = channel;
+    sConfig.Rank = 1;
+    // Aumenta el tiempo de muestreo si lees 0 o valores inestables
+    sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
+
+    // 2. Aplicar configuración
+    if (HAL_ADC_ConfigChannel(hadc, &sConfig) != HAL_OK) {
+        return 0; // Error de configuración
+    }
+
+    // 3. Ciclo de conversión
+    HAL_ADC_Start(hadc);
+
+    // Esperar con un timeout prudente (10ms es suficiente)
+    if (HAL_ADC_PollForConversion(hadc, 10) == HAL_OK) {
+        result = HAL_ADC_GetValue(hadc);
+    }
+
+    // 4. Parar el ADC para liberar el secuenciador
+    HAL_ADC_Stop(hadc);
+
+    return result;
+}
 /* USER CODE END 0 */
 
 /**
@@ -97,6 +125,7 @@ int main(void)
   MX_SPI3_Init();
   MX_USART3_UART_Init();
   MX_ADC1_Init();
+  MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
 
   MPU6500_Status=MPU6500_Init(&MPU6500_Datos,10,DPS250,G4);
@@ -112,7 +141,7 @@ int main(void)
  HAL_ADC_Start(&hadc1);
 
   HAL_Delay(2000);
-
+  uint16_t enca,encb,encc=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,20 +151,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  uint16_t adc_val=0;
+
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-	  	if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK)
-	  	    {
-	  		 adc_val=HAL_ADC_GetValue(&hadc1);
-	  		sprintf(bufferTxt," adc= %d ",adc_val);
-	  		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
-	  		HAL_ADC_Start(&hadc1);
-	  	    }
+
 	  MPU6500_Read(&MPU6500_Datos);
 	  MPU6500_Conv=MPU6500_Converter(&MPU6500_Datos, DPS250_CONV, G4_CONV);
+/*
 	sprintf(bufferTxt," Gx= %.2f ",MPU6500_Conv.MPU6500_floatGX);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
@@ -153,8 +177,54 @@ int main(void)
 
 	sprintf(bufferTxt," Az= %.2f \r\n",MPU6500_Conv.MPU6500_floatAZ);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+*/
 
-	HAL_Delay(100);
+
+	//adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 1);
+/*
+
+	HAL_ADC_Start(&hadc1);
+
+	    // Esperar con un timeout prudente (10ms es suficiente)
+	    if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
+	        adc2_val = HAL_ADC_GetValue(&hadc1);
+
+		    // 4. Parar el ADC para liberar el secuenciador
+		    HAL_ADC_Stop(&hadc1);
+	    }*/
+	/*adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 0);
+	sprintf(bufferTxt," Adc0= %d ",adc2_val);
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+
+	HAL_GPIO_WritePin(IR1_TX_GPIO_Port, IR1_TX_Pin, GPIO_PIN_SET);
+	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 1);
+	sprintf(bufferTxt," Adc1= %d ",adc2_val);
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 2);
+	sprintf(bufferTxt," Adc2= %d ",adc2_val);
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 3);
+	sprintf(bufferTxt," Adc3= %d ",adc2_val);
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+
+	adc2_val=(uint16_t)ADC_Read_Manual(&hadc1, 7);
+	sprintf(bufferTxt," Adc= %d \r\n",adc2_val);
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);*/
+
+	    enca=HAL_GPIO_ReadPin(encA_GPIO_Port, encA_Pin);
+	  	encb=HAL_GPIO_ReadPin(encb_GPIO_Port, encb_Pin);
+	  	encc=HAL_GPIO_ReadPin(encc_GPIO_Port, encc_Pin);
+
+	  	sprintf(bufferTxt," A2= %d ",enca);
+	  	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+
+	  	sprintf(bufferTxt," A3= %d ",encb);
+	  	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+
+
+	  	sprintf(bufferTxt," Ac= %d \r\n",encc);
+	  	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+	  	HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
@@ -176,13 +246,12 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 168;
+  RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
