@@ -75,12 +75,24 @@ void Error_Handler(void);
 #define LED4_GPIO_Port GPIOB
 #define SPI_NSS_Pin GPIO_PIN_15
 #define SPI_NSS_GPIO_Port GPIOA
-#define encc_Pin GPIO_PIN_2
-#define encc_GPIO_Port GPIOD
-#define encb_Pin GPIO_PIN_4
-#define encb_GPIO_Port GPIOB
-#define encA_Pin GPIO_PIN_5
-#define encA_GPIO_Port GPIOB
+#define Enc_D_C_Pin GPIO_PIN_2
+#define Enc_D_C_GPIO_Port GPIOD
+#define Enc_D_C_EXTI_IRQn EXTI2_IRQn
+#define Enc_I_C_Pin GPIO_PIN_3
+#define Enc_I_C_GPIO_Port GPIOB
+#define Enc_I_C_EXTI_IRQn EXTI3_IRQn
+#define Enc_D_B_Pin GPIO_PIN_4
+#define Enc_D_B_GPIO_Port GPIOB
+#define Enc_D_B_EXTI_IRQn EXTI4_IRQn
+#define Enc_D_A_Pin GPIO_PIN_5
+#define Enc_D_A_GPIO_Port GPIOB
+#define Enc_D_A_EXTI_IRQn EXTI9_5_IRQn
+#define Enc_I_B_Pin GPIO_PIN_6
+#define Enc_I_B_GPIO_Port GPIOB
+#define Enc_I_B_EXTI_IRQn EXTI9_5_IRQn
+#define Enc_I_A_Pin GPIO_PIN_7
+#define Enc_I_A_GPIO_Port GPIOB
+#define Enc_I_A_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
 

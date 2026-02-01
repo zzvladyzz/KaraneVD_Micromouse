@@ -37,6 +37,17 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+/* Variables para los encoders*/
+const int8_t estadoTabla[16]={0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0}; //valor encoders de tabla de verdad
+uint8_t estadoAnterior_L=0;
+uint8_t estadoAnterior_R=0;
+int32_t ticksD=0;
+int32_t ticksI=0;
+int32_t contD=0;
+int32_t contI=0;
+
+
 char bufferTxt[30];
 MPU6500_Init_Values_t 	MPU6500_Datos; //Iniciamos donde se guardaran todos los datos a leer
 MPU6500_status_e	MPU6500_Status;
@@ -91,6 +102,34 @@ uint32_t ADC_Read_Manual(ADC_HandleTypeDef *hadc, uint32_t channel) {
 
     return result;
 }
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+
+	if(GPIO_Pin==Enc_D_A_Pin||GPIO_Pin==Enc_D_B_Pin)
+		{
+		uint8_t bitStatusL=((HAL_GPIO_ReadPin(Enc_D_A_GPIO_Port, Enc_D_A_Pin))?2:0) | ((HAL_GPIO_ReadPin(Enc_D_B_GPIO_Port, Enc_D_B_Pin))?1:0);
+		ticksD+=estadoTabla[((estadoAnterior_L<<2)|bitStatusL)];
+		estadoAnterior_L=bitStatusL;
+		}
+	if(GPIO_Pin==Enc_I_A_Pin||GPIO_Pin==Enc_I_B_Pin)
+		{
+		uint8_t bitStatusR=((HAL_GPIO_ReadPin(Enc_I_A_GPIO_Port, Enc_I_A_Pin))?2:0) | ((HAL_GPIO_ReadPin(Enc_I_B_GPIO_Port, Enc_I_B_Pin))?1:0);
+		ticksI+=(-estadoTabla[((estadoAnterior_R<<2)|bitStatusR)]);
+		estadoAnterior_R=bitStatusR;
+		}
+	if(GPIO_Pin==Enc_D_C_Pin)
+	{
+		contD++;
+	}
+	if(GPIO_Pin==Enc_I_C_Pin)
+		{
+			contI++;
+		}
+
+
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -141,7 +180,6 @@ int main(void)
  HAL_ADC_Start(&hadc1);
 
   HAL_Delay(2000);
-  uint16_t enca,encb,encc=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -152,14 +190,14 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
+	 /* HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-
-	  MPU6500_Read(&MPU6500_Datos);
+*/
+	 /* MPU6500_Read(&MPU6500_Datos);
 	  MPU6500_Conv=MPU6500_Converter(&MPU6500_Datos, DPS250_CONV, G4_CONV);
-/*
+
 	sprintf(bufferTxt," Gx= %.2f ",MPU6500_Conv.MPU6500_floatGX);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
@@ -211,19 +249,17 @@ int main(void)
 	sprintf(bufferTxt," Adc= %d \r\n",adc2_val);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);*/
 
-	    enca=HAL_GPIO_ReadPin(encA_GPIO_Port, encA_Pin);
-	  	encb=HAL_GPIO_ReadPin(encb_GPIO_Port, encb_Pin);
-	  	encc=HAL_GPIO_ReadPin(encc_GPIO_Port, encc_Pin);
+		sprintf(bufferTxt," D= %ld ",ticksD);
+		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
-	  	sprintf(bufferTxt," A2= %d ",enca);
-	  	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+		sprintf(bufferTxt," contD= %ld ",contD);
+		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
-	  	sprintf(bufferTxt," A3= %d ",encb);
-	  	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+		sprintf(bufferTxt," I= %ld ",ticksI);
+		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
-
-	  	sprintf(bufferTxt," Ac= %d \r\n",encc);
-	  	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+		sprintf(bufferTxt," contI= %ld \r\n",contI);
+		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 	  	HAL_Delay(100);
   }
   /* USER CODE END 3 */
