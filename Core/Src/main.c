@@ -109,13 +109,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if(GPIO_Pin==Enc_D_A_Pin||GPIO_Pin==Enc_D_B_Pin)
 		{
 		uint8_t bitStatusL=((HAL_GPIO_ReadPin(Enc_D_A_GPIO_Port, Enc_D_A_Pin))?2:0) | ((HAL_GPIO_ReadPin(Enc_D_B_GPIO_Port, Enc_D_B_Pin))?1:0);
-		ticksD+=estadoTabla[((estadoAnterior_L<<2)|bitStatusL)];
+		ticksD+=(-estadoTabla[((estadoAnterior_L<<2)|bitStatusL)]);
 		estadoAnterior_L=bitStatusL;
 		}
 	if(GPIO_Pin==Enc_I_A_Pin||GPIO_Pin==Enc_I_B_Pin)
 		{
 		uint8_t bitStatusR=((HAL_GPIO_ReadPin(Enc_I_A_GPIO_Port, Enc_I_A_Pin))?2:0) | ((HAL_GPIO_ReadPin(Enc_I_B_GPIO_Port, Enc_I_B_Pin))?1:0);
-		ticksI+=(-estadoTabla[((estadoAnterior_R<<2)|bitStatusR)]);
+		ticksI+=(estadoTabla[((estadoAnterior_R<<2)|bitStatusR)]);
 		estadoAnterior_R=bitStatusR;
 		}
 	if(GPIO_Pin==Enc_D_C_Pin)
@@ -190,11 +190,11 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	 /* HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
+	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-*/
+
 	 /* MPU6500_Read(&MPU6500_Datos);
 	  MPU6500_Conv=MPU6500_Converter(&MPU6500_Datos, DPS250_CONV, G4_CONV);
 
@@ -230,10 +230,17 @@ int main(void)
 		    // 4. Parar el ADC para liberar el secuenciador
 		    HAL_ADC_Stop(&hadc1);
 	    }*/
-	/*adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 0);
+	uint16_t adc2_val=(uint16_t)ADC_Read_Manual(&hadc1, 7);
+	if(adc2_val<4010 && adc2_val>4000)
+	{
+		ticksD=0;
+		ticksI=0;
+		contD=0;
+		contI=0;
+	}
 	sprintf(bufferTxt," Adc0= %d ",adc2_val);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
-
+/*
 	HAL_GPIO_WritePin(IR1_TX_GPIO_Port, IR1_TX_Pin, GPIO_PIN_SET);
 	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 1);
 	sprintf(bufferTxt," Adc1= %d ",adc2_val);
@@ -249,17 +256,18 @@ int main(void)
 	sprintf(bufferTxt," Adc= %d \r\n",adc2_val);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);*/
 
+
+	sprintf(bufferTxt," I= %ld ",ticksI);
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+
+	sprintf(bufferTxt," contI= %ld ",contI);
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 		sprintf(bufferTxt," D= %ld ",ticksD);
 		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
-		sprintf(bufferTxt," contD= %ld ",contD);
+		sprintf(bufferTxt," contD= %ld \r\n",contD);
 		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
-		sprintf(bufferTxt," I= %ld ",ticksI);
-		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
-
-		sprintf(bufferTxt," contI= %ld \r\n",contI);
-		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 	  	HAL_Delay(100);
   }
   /* USER CODE END 3 */
