@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -165,8 +166,24 @@ int main(void)
   MX_USART3_UART_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+
+  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,00);
+  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,00);
+  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_3,00);
+  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_4,00);
+
+  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4,00);
+
+  HAL_Delay(500);
   MPU6500_Status=MPU6500_Init(&MPU6500_Datos,10,DPS250,G4);
   if (MPU6500_Status==MPU6500_fail) {
   	for (;;) {
@@ -179,7 +196,9 @@ int main(void)
  		  HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
  HAL_ADC_Start(&hadc1);
 
-  HAL_Delay(2000);
+  HAL_Delay(1000);
+
+uint16_t conn=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -189,11 +208,22 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4,conn);
+	  conn=conn+50;
+	  if(conn>400)
+	  {
+		  conn=0;
+	  }
+	  HAL_Delay(500);
+	  HAL_GPIO_WritePin(MOTOR_EN_GPIO_Port, MOTOR_EN_Pin, GPIO_PIN_RESET);
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,50);
+	    __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,100);
+	    __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_3,50);
+	    __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_4,100);
 
 	 /* MPU6500_Read(&MPU6500_Datos);
 	  MPU6500_Conv=MPU6500_Converter(&MPU6500_Datos, DPS250_CONV, G4_CONV);
@@ -270,6 +300,7 @@ int main(void)
 
 	  	HAL_Delay(100);
   }
+
   /* USER CODE END 3 */
 }
 
