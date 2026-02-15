@@ -183,22 +183,26 @@ int main(void)
 
   __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4,00);
 
-  HAL_Delay(500);
-  MPU6500_Status=MPU6500_Init(&MPU6500_Datos,10,DPS250,G4);
-  if (MPU6500_Status==MPU6500_fail) {
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5,GPIO_PIN_SET);
+  HAL_Delay(1000);
+
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5,GPIO_PIN_RESET);
+
+  MPU6500_Status=MPU6500_Init(&MPU6500_Datos,10,DPS250,G2);
+  /*if (MPU6500_Status==MPU6500_fail) {
   	for (;;) {
   		 sprintf(bufferTxt,"Fallo al iniciar MPU\r\n");
   				  HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
-
+  				HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
+  				HAL_Delay(500);
   		}
-  }
+  }*/
   sprintf(bufferTxt," Exito al iniciar MPU\r\n");
  		  HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
  HAL_ADC_Start(&hadc1);
 
   HAL_Delay(1000);
-
-uint16_t conn=0;
+uint16_t xxx=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -208,15 +212,17 @@ uint16_t conn=0;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4,conn);
-	  conn=conn+50;
-	  if(conn>400)
+
+	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4,xxx);
+	  xxx=xxx+8;
+	  if(xxx>200)
 	  {
-		  conn=0;
+		  xxx=0;
+		  //HAL_Delay(4000);
 	  }
 	  HAL_Delay(500);
 	  HAL_GPIO_WritePin(MOTOR_EN_GPIO_Port, MOTOR_EN_Pin, GPIO_PIN_RESET);
-	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
+	  //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4);
 	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
@@ -225,8 +231,8 @@ uint16_t conn=0;
 	    __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_3,50);
 	    __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_4,100);
 
-	 /* MPU6500_Read(&MPU6500_Datos);
-	  MPU6500_Conv=MPU6500_Converter(&MPU6500_Datos, DPS250_CONV, G4_CONV);
+	  MPU6500_Read(&MPU6500_Datos);
+	  MPU6500_Conv=MPU6500_Converter(&MPU6500_Datos, DPS250_CONV, G2_CONV);
 
 	sprintf(bufferTxt," Gx= %.2f ",MPU6500_Conv.MPU6500_floatGX);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
@@ -245,10 +251,10 @@ uint16_t conn=0;
 
 	sprintf(bufferTxt," Az= %.2f \r\n",MPU6500_Conv.MPU6500_floatAZ);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
-*/
 
 
-	//adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 1);
+
+	uint16_t adc2_val=00;
 /*
 
 	HAL_ADC_Start(&hadc1);
@@ -260,7 +266,7 @@ uint16_t conn=0;
 		    // 4. Parar el ADC para liberar el secuenciador
 		    HAL_ADC_Stop(&hadc1);
 	    }*/
-	uint16_t adc2_val=(uint16_t)ADC_Read_Manual(&hadc1, 7);
+	adc2_val=(uint16_t)ADC_Read_Manual(&hadc1, 7);
 	if(adc2_val<4010 && adc2_val>4000)
 	{
 		ticksD=0;
@@ -268,24 +274,33 @@ uint16_t conn=0;
 		contD=0;
 		contI=0;
 	}
-	sprintf(bufferTxt," Adc0= %d ",adc2_val);
+	sprintf(bufferTxt," Ad0 boton= %d ",adc2_val);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
-/*
+
 	HAL_GPIO_WritePin(IR1_TX_GPIO_Port, IR1_TX_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
 	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 1);
-	sprintf(bufferTxt," Adc1= %d ",adc2_val);
+	HAL_Delay(5);
+
+	sprintf(bufferTxt," ir1= %d ",adc2_val);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(IR1_TX_GPIO_Port, IR1_TX_Pin, GPIO_PIN_RESET);
+
 	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 2);
 	sprintf(bufferTxt," Adc2= %d ",adc2_val);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
+
+
 	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 3);
 	sprintf(bufferTxt," Adc3= %d ",adc2_val);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
-	adc2_val=(uint16_t)ADC_Read_Manual(&hadc1, 7);
-	sprintf(bufferTxt," Adc= %d \r\n",adc2_val);
-	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);*/
 
+	adc2_val=(uint16_t)ADC_Read_Manual(&hadc2, 4);
+	sprintf(bufferTxt," Adc= %d \r\n",adc2_val);
+
+
+	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
 	sprintf(bufferTxt," I= %ld ",ticksI);
 	HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
@@ -298,7 +313,9 @@ uint16_t conn=0;
 		sprintf(bufferTxt," contD= %ld \r\n",contD);
 		HAL_UART_Transmit(&huart3, (uint8_t *)bufferTxt, strlen(bufferTxt), HAL_MAX_DELAY);
 
+
 	  	HAL_Delay(100);
+
   }
 
   /* USER CODE END 3 */
